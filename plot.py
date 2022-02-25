@@ -1,3 +1,4 @@
+from collections import Counter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -8,6 +9,7 @@ import sklearn.preprocessing
 
 import scores_only
 from learning import plot_confusion_matrix
+from retrieve import get_benchmark_data
 
 
 def _main():
@@ -20,6 +22,7 @@ def make_plots():
         outdirpath.mkdir(parents=True, exist_ok=True)
     plot_perfect_confusion(outdirpath)
     plot_parallels_distribution(outdirpath)
+    plot_benchmark_stats(outdirpath)
     make_separability_plots(outdirpath)
 
 
@@ -101,6 +104,22 @@ def make_separability_plots(outdirpath):
     outfilepath = outdirpath / 'separability_meaningfuls.svg'
     plot_separability(X, meaningfuls, ['meaningless', 'meaningful'],
                       str(outfilepath))
+
+
+def plot_benchmark_stats(outdirpath):
+    benchmark = get_benchmark_data()
+    benchmark_rank_counts = Counter()
+    for key, values in benchmark.items():
+        for value in values:
+            benchmark_rank_counts[value[1]] += 1
+    for rank in sorted(benchmark_rank_counts.keys(), reverse=True):
+        print(f'\t{benchmark_rank_counts[rank]}')
+    fig, ax = plt.subplots()
+    plot_axbar(ax, benchmark_rank_counts, 'Benchmark Statistics', None)
+    fig.tight_layout()
+    fig.savefig(str(outdirpath / 'benchmark_stats.svg'))
+    fig.clear
+    plt.close(fig)
 
 
 def plot_ideal_separability(outdirpath):
